@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amazon OAuth Callback | AI Operations OS</title>
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f6f7f9;color:#1f2937;line-height:1.6}
+    main{max-width:780px;margin:56px auto;padding:0 20px}
+    article{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:36px;box-shadow:0 8px 24px rgba(0,0,0,.04)}
+    h1{margin:0 0 12px;font-size:30px}
+    .status{padding:14px 16px;border-radius:10px;background:#f0fdf4;color:#166534;margin:18px 0;font-weight:600}
+    .warning{padding:14px 16px;border-radius:10px;background:#fffbeb;color:#92400e;margin:18px 0}
+    .field{margin-top:20px}
+    label{display:block;font-weight:700;margin-bottom:8px}
+    textarea,input{width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:9px;font:inherit;background:#f9fafb;color:#1f2937;box-sizing:border-box}
+    textarea{min-height:110px;resize:vertical}
+    button{margin-top:10px;padding:10px 14px;border:0;border-radius:8px;cursor:pointer;font-weight:600}
+    .muted{color:#6b7280;font-size:14px}
+    .error{background:#fef2f2;color:#991b1b}
+  </style>
+</head>
+<body>
+  <main>
+    <article>
+      <h1>Amazon Authorization Callback</h1>
+      <p>This page is used only as the OAuth return URL for the internal AI Operations OS application.</p>
+
+      <div id="status" class="status">Waiting for Amazon authorization response…</div>
+
+      <div id="successFields" hidden>
+        <div class="field">
+          <label for="code">Authorization Code</label>
+          <textarea id="code" readonly></textarea>
+          <button type="button" onclick="copyCode()">Copy authorization code</button>
+        </div>
+
+        <div class="field">
+          <label for="state">State</label>
+          <input id="state" readonly>
+        </div>
+
+        <div class="warning">
+          Do not share the authorization code, Client Secret, or Refresh Token.
+          This page does not send the code to any third party.
+        </div>
+      </div>
+
+      <div id="errorFields" hidden>
+        <div class="field">
+          <label for="error">Error</label>
+          <input id="error" readonly>
+        </div>
+        <div class="field">
+          <label for="errorDescription">Description</label>
+          <textarea id="errorDescription" readonly></textarea>
+        </div>
+      </div>
+
+      <p class="muted">
+        The authorization code is displayed locally in your browser from the URL parameters.
+        It is not uploaded or transmitted by this page.
+      </p>
+    </article>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const state = params.get("state") || "";
+    const error = params.get("error");
+    const errorDescription = params.get("error_description") || "";
+    const statusEl = document.getElementById("status");
+
+    if (code) {
+      statusEl.textContent = "Authorization received successfully.";
+      document.getElementById("successFields").hidden = false;
+      document.getElementById("code").value = code;
+      document.getElementById("state").value = state;
+    } else if (error) {
+      statusEl.textContent = "Amazon returned an authorization error.";
+      statusEl.classList.add("error");
+      document.getElementById("errorFields").hidden = false;
+      document.getElementById("error").value = error;
+      document.getElementById("errorDescription").value = errorDescription;
+    } else {
+      statusEl.textContent = "No authorization code is present yet. This is normal before OAuth authorization.";
+    }
+
+    async function copyCode() {
+      const value = document.getElementById("code").value;
+      if (!value) return;
+      try {
+        await navigator.clipboard.writeText(value);
+        alert("Authorization code copied.");
+      } catch (e) {
+        document.getElementById("code").select();
+      }
+    }
+  </script>
+</body>
+</html>
